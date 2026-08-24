@@ -1,1 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>睿立作業系統</title>
 
+    <!-- PWA & App 設定 -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="睿立作業系統">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="apple-touch-icon" href="logo.png">
+    <link rel="icon" type="image/png" href="logo.png">
+
+    <!-- 第三方套件與樣式 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- 自訂樣式 -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="p-5">
+    <h2 class="text-2xl font-bold mb-4">案件雲端存取測試</h2>
+
+    <div class="flex gap-2 mb-4">
+        <input type="text" id="caseInput" placeholder="請輸入測試案件內容..." class="w-72 p-2 border rounded">
+        <button id="saveBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">儲存到雲端</button>
+        <button id="loadBtn" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">從雲端讀取</button>
+    </div>
+
+    <h3 class="text-lg font-semibold mb-2">讀取結果：</h3>
+    <pre id="displayArea" class="bg-gray-100 p-4 rounded min-h-[100px]"></pre>
+
+    <!-- 主控腳本 (ES Module) -->
+    <script type="module">
+        import { saveCase, loadCases } from './js/services/cases.js';
+
+        document.getElementById('saveBtn').addEventListener('click', async () => {
+            try {
+                const input = document.getElementById('caseInput');
+                await saveCase(input.value);
+                alert('儲存成功！');
+                input.value = '';
+            } catch (err) {
+                alert('儲存失敗：' + err.message);
+            }
+        });
+
+        document.getElementById('loadBtn').addEventListener('click', async () => {
+            try {
+                const data = await loadCases();
+                document.getElementById('displayArea').textContent = JSON.stringify(data, null, 2);
+            } catch (err) {
+                alert('讀取失敗：' + err.message);
+            }
+        });
+    </script>
+</body>
+</html>
