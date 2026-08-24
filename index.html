@@ -295,7 +295,7 @@
                             <div class="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1.5 rounded-lg border border-slate-200">
                                 <span class="text-xs font-semibold text-slate-600 pl-1"><i class="fa-solid fa-share-from-square text-sky-600"></i> 拋轉至：</span>
                                 <select id="select-batch-target" class="px-2 py-1 border border-slate-300 rounded text-xs focus:outline-none focus:border-sky-500 bg-white font-medium">
-                                    <option value="土地變更-已簽約">已簽約</option>
+                                    <option value="土地變更已簽約">土地變更已簽約</option>
                                     <option value="優先處理">優先處理</option>
                                     <option value="總有一天">總有一天</option>
                                     <option value="租客案件">租客案件</option>
@@ -757,7 +757,7 @@
         }
 
         function renderCaseRow(c) {
-            const landChangeOnlyStatuses = ['優先處理', '總有一天', '租客案件', '同業案件', '已被斬件', '無法領證', '土地變更', '土地變更-已簽約'];
+            const landChangeOnlyStatuses = ['優先處理', '總有一天', '租客案件', '同業案件', '已被斬件', '無法領證', '土地變更'];
             if (!landChangeOnlyStatuses.includes(c.status)) {
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-slate-50 transition cursor-pointer';
@@ -806,11 +806,11 @@
         }
 
         function renderSpecialFactoryRow(c) {
-            const categories = ['土地變更-已簽約', '優先處理', '總有一天', '租客案件', '同業案件', '已被斬件', '無法領證'];
+            const categories = ['已簽約', '優先處理', '總有一天', '租客案件', '同業案件', '已被斬件', '無法領證'];
             
             let statusToMatch = c.status;
             if (statusToMatch === '土地變更') statusToMatch = '優先處理';
-            if (statusToMatch === '已簽約' || statusToMatch === '簽約案件') return; // 排除 2026 簽約案件顯示在土地變更
+            if (statusToMatch === '簽約案件') return; // 2026的簽約案件不顯示在土地變更的已簽約內
 
             const categoryIndex = categories.indexOf(statusToMatch);
             if (categoryIndex === -1) return;
@@ -898,9 +898,9 @@
             let count = 0;
             casesData.forEach(c => {
                 if (idsToTransfer.includes(c.id)) {
-                    // 土地變更清單拋轉至「已簽約」時，賦予土地變更專屬 status
-                    if (targetStatus === '土地變更-已簽約') {
-                        c.status = '土地變更-已簽約';
+                    // 土地變更清單拋轉至「已簽約」時，賦予專屬 status 讓其落在土地變更的「已簽約」區塊
+                    if (targetStatus === '已簽約') {
+                        c.status = '已簽約';
                         c.workProgress = '已簽約';
                     } else {
                         c.status = targetStatus;
@@ -911,7 +911,7 @@
 
             saveCasesToStorage();
             loadCasesFromStorage();
-            alert(`已成功將 ${count} 筆案件分類！`);
+            alert(`已成功將 ${count} 筆案件分類至【${targetStatus}】！`);
         }
 
         function switchTab(tabId) {
@@ -975,7 +975,7 @@
             const statusInput = document.getElementById('select-case-status');
             if (c.status) {
                 let matchedStatus = c.status;
-                if (matchedStatus === '土地變更' || matchedStatus === '土地變更-已簽約') matchedStatus = '優先處理';
+                if (matchedStatus === '土地變更') matchedStatus = '優先處理';
                 statusInput.value = matchedStatus;
             } else {
                 statusInput.value = '案件評估';
@@ -1102,7 +1102,7 @@
             }
 
             const landPriorityCases = casesData.filter(c => c.status === '優先處理' || c.status === '土地變更');
-            const landSignedCases = casesData.filter(c => c.status === '土地變更-已簽約');
+            const landSignedCases = casesData.filter(c => c.status === '已簽約' && c.serviceItem === '土地變更');
             
             const pCount = landPriorityCases.length;
             const sCount = landSignedCases.length;
