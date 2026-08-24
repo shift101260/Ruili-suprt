@@ -2549,8 +2549,12 @@
    </script>
 
     <!-- 載入模組主程式 -->
+    <!-- 載入模組主程式與雙向同步 -->
     <script type="module">
-        import { loadFromSupabase } from './js/services/cases.js';
+        import { syncToSupabase, loadFromSupabase } from './js/services/cases.js';
+
+        // 讓舊的普通 script 也能呼叫到模組裡的 syncToSupabase
+        window.syncToSupabase = syncToSupabase;
 
         window.addEventListener('DOMContentLoaded', () => {
             loadFromSupabase();
