@@ -17,7 +17,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -1591,10 +1591,8 @@
             let count = 0;
             casesData.forEach(c => {
                 if (idsToTransfer.includes(c.id)) {
+                    // 只更新案件分類狀態，不改動工作進度 (workProgress)
                     c.status = targetStatus;
-                    if (targetStatus === '簽約案件') {
-                        c.workProgress = '已簽約';
-                    }
                     count++;
                 }
             });
@@ -1617,12 +1615,8 @@
             let count = 0;
             casesData.forEach(c => {
                 if (idsToTransfer.includes(c.id)) {
-                    if (targetStatus === '已簽約') {
-                        c.status = '簽約案件';
-                        c.workProgress = '已簽約';
-                    } else {
-                        c.status = targetStatus;
-                    }
+                    // 只更新案件分類狀態，不覆蓋工作進度 (workProgress)
+                    c.status = targetStatus;
                     count++;
                 }
             });
@@ -2546,9 +2540,8 @@
             closeAddCaseModal();
             alert(`儲存成功！案件資料已成功儲存。`);
         }
-   </script>
+    </script>
 
-    <!-- 載入模組主程式 -->
     <!-- 載入模組主程式與雙向同步 -->
     <script type="module">
         import { syncToSupabase, loadFromSupabase } from './js/services/cases.js';
@@ -2561,6 +2554,5 @@
         });
     </script>
 
-</body> <!-- 這裡才是 body 的結尾 -->
+</body>
 </html>
-
