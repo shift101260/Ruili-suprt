@@ -1541,7 +1541,6 @@
             
             let statusToMatch = c.status;
             if (statusToMatch === '土地變更') statusToMatch = '優先處理';
-            if (statusToMatch === '簽約案件') statusToMatch = '已簽約';
 
             const categoryIndex = categories.indexOf(statusToMatch);
             if (categoryIndex === -1) return;
