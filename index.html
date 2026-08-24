@@ -1,11 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>睿立作業系統</title>
-
-    <!-- PWA & App 設定 -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -13,49 +8,111 @@
     <meta name="theme-color" content="#0f172a">
     <link rel="apple-touch-icon" href="logo.png">
     <link rel="icon" type="image/png" href="logo.png">
-
-    <!-- 第三方套件與樣式 -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>睿立作業系統</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- 自訂樣式 -->
     <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="p-5">
-    <h2 class="text-2xl font-bold mb-4">案件雲端存取測試</h2>
+<body class="bg-slate-50 text-slate-800 flex flex-col md:flex-row h-screen overflow-hidden">
 
-    <div class="flex gap-2 mb-4">
-        <input type="text" id="caseInput" placeholder="請輸入測試案件內容..." class="w-72 p-2 border rounded">
-        <button id="saveBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">儲存到雲端</button>
-        <button id="loadBtn" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">從雲端讀取</button>
+    <!-- 手機版頂部導覽列 -->
+    <div class="md:hidden bg-slate-900 text-white flex items-center justify-between p-4 shadow-md z-20">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-sky-600 flex items-center justify-center font-bold text-lg">睿</div>
+            <span class="font-bold tracking-wide">睿立集團</span>
+        </div>
+        <button onclick="toggleSidebar()" class="text-slate-300 hover:text-white p-2">
+            <i class="fa-solid fa-bars text-xl"></i>
+        </button>
     </div>
 
-    <h3 class="text-lg font-semibold mb-2">讀取結果：</h3>
-    <pre id="displayArea" class="bg-gray-100 p-4 rounded min-h-[100px]"></pre>
+    <!-- 側邊欄 -->
+    <aside id="sidebar" class="w-full md:w-64 bg-slate-900 text-slate-300 flex flex-col flex-shrink-0 shadow-lg absolute md:relative inset-y-0 left-0 transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out z-30">
+        <div class="p-5 flex items-center justify-between border-b border-slate-800">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-sky-600 flex items-center justify-center text-white font-bold text-xl shadow">睿</div>
+                <div>
+                    <h1 class="font-bold text-white tracking-wide">睿立集團</h1>
+                    <p class="text-xs text-slate-400">RUILI SYSTEM</p>
+                </div>
+            </div>
+            <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
 
-    <!-- 主控腳本 (ES Module) -->
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+            <button onclick="switchTab('war-room')" id="btn-war-room" class="sidebar-btn sidebar-item-active w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all hover:bg-slate-800 hover:text-white">
+                <i class="fa-solid fa-chart-line text-lg w-5 text-center"></i>
+                <span>戰情室</span>
+            </button>
+            <button onclick="switchTab('cases-2026')" id="btn-cases-2026" class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-400 transition-all hover:bg-slate-800 hover:text-white">
+                <i class="fa-solid fa-list-check text-lg w-5 text-center"></i>
+                <span>2026案件管理</span>
+            </button>
+            <button onclick="switchTab('special-factory')" id="btn-special-factory" class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-400 transition-all hover:bg-slate-800 hover:text-white">
+                <i class="fa-solid fa-industry text-lg w-5 text-center"></i>
+                <span>土地變更</span>
+            </button>
+            <button onclick="switchTab('closed-cases')" id="btn-closed-cases" class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-400 transition-all hover:bg-slate-800 hover:text-white">
+                <i class="fa-solid fa-box-archive text-lg w-5 text-center"></i>
+                <span>結案</span>
+            </button>
+            <button onclick="switchTab('trash-cases')" id="btn-trash-cases" class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-400 transition-all hover:bg-slate-800 hover:text-white">
+                <i class="fa-solid fa-trash-can text-lg w-5 text-center"></i>
+                <span>廢件區</span>
+            </button>
+            <button onclick="switchTab('real-estate-table')" id="btn-real-estate-table" class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-400 transition-all hover:bg-slate-800 hover:text-white">
+                <i class="fa-solid fa-building text-lg w-5 text-center"></i>
+                <span>不動產案件資料表</span>
+            </button>
+        </nav>
+    </aside>
+
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <header class="bg-white border-b border-slate-200 px-4 md:px-8 py-4 flex items-center justify-between shadow-sm">
+            <div>
+                <h2 id="page-title" class="text-lg md:text-xl font-bold text-slate-800">戰情室</h2>
+                <p class="text-xs text-slate-500 mt-0.5">睿立｜即時營運指標與戰情數據</p>
+            </div>
+            <button onclick="loadCasesFromStorage(); alert('已刷新最新資料！');" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-md text-xs font-medium flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-rotate"></i> 重新整理
+            </button>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50">
+            <!-- 戰情室畫面 -->
+            <section id="tab-war-room" class="tab-content space-y-6">
+                <div class="bg-white p-4 md:p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-semibold text-slate-500 mb-1">年度簽約數量</p>
+                                <h4 id="stat-signed-count" class="text-2xl font-black text-slate-800 font-mono">0 件</h4>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-100 flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-semibold text-emerald-800 mb-1">年度簽約金額</p>
+                                <h4 id="stat-signed-amount" class="text-2xl font-black text-emerald-700 font-mono">NT$ 0</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- 其它 Tab 內容區塊可依原樣保留 -->
+        </div>
+    </main>
+
+    <!-- 載入模組主程式 -->
     <script type="module">
-        import { saveCase, loadCases } from './js/services/cases.js';
+        import { loadFromSupabase } from './js/services/cases.js';
 
-        document.getElementById('saveBtn').addEventListener('click', async () => {
-            try {
-                const input = document.getElementById('caseInput');
-                await saveCase(input.value);
-                alert('儲存成功！');
-                input.value = '';
-            } catch (err) {
-                alert('儲存失敗：' + err.message);
-            }
-        });
-
-        document.getElementById('loadBtn').addEventListener('click', async () => {
-            try {
-                const data = await loadCases();
-                document.getElementById('displayArea').textContent = JSON.stringify(data, null, 2);
-            } catch (err) {
-                alert('讀取失敗：' + err.message);
-            }
+        window.addEventListener('DOMContentLoaded', () => {
+            loadFromSupabase();
         });
     </script>
 </body>
