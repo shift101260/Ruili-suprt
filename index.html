@@ -17,7 +17,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -184,6 +184,7 @@
                                 <option value="歷年簽約案件">歷年簽約案件</option>
                                 <option value="結案">結案</option>
                                 <option value="廢件區">廢件區</option>
+                                <option value="複製到土地變更">複製到土地變更</option>
                             </select>
                             <button onclick="transferSelected2026Cases()" class="px-2.5 py-1 bg-sky-600 hover:bg-sky-700 text-white rounded text-xs font-medium transition shadow-sm">
                                 拋轉
@@ -534,26 +535,11 @@
             <form id="add-case-form" onsubmit="handleSaveCase(event)" class="flex flex-col flex-1 min-h-0 overflow-hidden">
                 <div class="p-4 md:p-6 space-y-4 overflow-y-auto flex-1 text-xs">
                     <input type="hidden" id="input-case-id">
+                    <input type="hidden" id="select-case-status" value="案件評估">
                     
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">
-                                案件狀態 (拋轉歸類區) <span class="text-rose-500">*</span>
-                            </label>
-                            <select id="select-case-status" required class="w-full px-3 py-2 border border-sky-300 bg-sky-50 text-sky-900 font-semibold rounded-lg text-xs focus:outline-none focus:border-sky-500">
-                                <option value="案件評估">案件評估</option>
-                                <option value="簽約案件">簽約案件</option>
-                                <option value="歷年簽約案件">歷年簽約案件</option>
-                                <option value="結案">結案</option>
-                                <option value="廢件區">廢件區</option>
-                                <option value="土地變更">土地變更</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1"> 建檔時間/日期</label>
-                            <input type="datetime-local" id="input-created-at" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-sky-500 bg-white">
-                        </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1"> 建檔時間/日期</label>
+                        <input type="datetime-local" id="input-created-at" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-sky-500 bg-white">
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1589,19 +1575,35 @@
             const idsToTransfer = Array.from(checkedBoxes).map(chk => chk.dataset.id);
 
             let count = 0;
-            casesData.forEach(c => {
-                if (idsToTransfer.includes(c.id)) {
-                    c.status = targetStatus;
-                    if (targetStatus === '簽約案件') {
-                        c.workProgress = '已簽約';
+            if (targetStatus === '複製到土地變更') {
+                idsToTransfer.forEach(id => {
+                    const origCase = casesData.find(c => c.id === id);
+                    if (origCase) {
+                        const copiedCase = JSON.parse(JSON.stringify(origCase));
+                        copiedCase.id = 'case_' + Date.now() + Math.random().toString(36).substr(2, 4);
+                        copiedCase.status = '優先處理';
+                        copiedCase.serviceItem = '土地變更';
+                        casesData.unshift(copiedCase);
+                        count++;
                     }
-                    count++;
-                }
-            });
-
-            saveCasesToStorage();
-            loadCasesFromStorage();
-            alert(`已成功將 ${count} 筆案件拋轉至【${targetStatus}】！`);
+                });
+                saveCasesToStorage();
+                loadCasesFromStorage();
+                alert(`已成功複製 ${count} 筆案件至【土地變更】！`);
+            } else {
+                casesData.forEach(c => {
+                    if (idsToTransfer.includes(c.id)) {
+                        c.status = targetStatus;
+                        if (targetStatus === '簽約案件') {
+                            c.workProgress = '已簽約';
+                        }
+                        count++;
+                    }
+                });
+                saveCasesToStorage();
+                loadCasesFromStorage();
+                alert(`已成功將 ${count} 筆案件拋轉至【${targetStatus}】！`);
+            }
         }
 
         function transferSelectedSpecialCases() {
@@ -1717,7 +1719,7 @@
             document.getElementById('btn-submit-case').textContent = '儲存變更';
             document.getElementById('input-case-id').value = c.id;
 
-            // 自動回填並選取該案件目前的「案件狀態 (拋轉歸類區)」
+            // 自動回填並選取該案件目前的「案件狀態」
             const statusSelect = document.getElementById('select-case-status');
             if (c.status) {
                 let matchedStatus = c.status;
@@ -1936,10 +1938,16 @@
             const monthlyGen = document.getElementById('res-solar-monthly-gen').textContent;
             const annualRev = document.getElementById('res-solar-annual-rev').textContent;
 
-            const summaryText = `【太陽能試算摘要】\n- 屋頂坪數：${roofPing} 坪\n- 預估每日發電：${dailyGen}\n- 預估每月發電：${monthlyGen}\n- 預估每年收益：${annualRev}`;
+            const summaryText = `【太陽能試算摘要】
+- 屋頂坪數：${roofPing} 坪
+- 預估每日發電：${dailyGen}
+- 預估每月發電：${monthlyGen}
+- 預估每年收益：${annualRev}`;
 
             const descInput = document.getElementById('input-case-description');
-            descInput.value = (descInput.value ? descInput.value + '\n\n' : '') + summaryText;
+            descInput.value = (descInput.value ? descInput.value + '
+
+' : '') + summaryText;
             autoExpandTextarea(descInput);
 
             closeSolarModal();
@@ -2025,10 +2033,17 @@
             const factorySitePing = document.getElementById('ping-factory-site').value || '0 坪';
             const feedbackAmt = document.getElementById('sum-feedback-amount').textContent;
 
-            const summaryText = `【土地變更評估摘要】\n- 組織型態：${orgType}\n- 鄰路寬度：${roadWidth}\n- 三年內環保違規停工：${envViol}\n- 廠地預估坪數：${factorySitePing}\n- 預估回饋金總額：${feedbackAmt}`;
+            const summaryText = `【土地變更評估摘要】
+- 組織型態：${orgType}
+- 鄰路寬度：${roadWidth}
+- 三年內環保違規停工：${envViol}
+- 廠地預估坪數：${factorySitePing}
+- 預估回饋金總額：${feedbackAmt}`;
 
             const descInput = document.getElementById('input-case-description');
-            descInput.value = (descInput.value ? descInput.value + '\n\n' : '') + summaryText;
+            descInput.value = (descInput.value ? descInput.value + '
+
+' : '') + summaryText;
             autoExpandTextarea(descInput);
 
             closeLandChangeModal();
@@ -2419,7 +2434,7 @@
             event.preventDefault();
 
             const existingId = document.getElementById('input-case-id').value;
-            let selectedStatus = document.getElementById('select-case-status').value;
+            let selectedStatus = document.getElementById('select-case-status').value || '案件評估';
             const workProgress = document.getElementById('select-work-progress').value;
 
             const caseCosts = [];
@@ -2548,7 +2563,6 @@
         }
    </script>
 
-    <!-- 載入模組主程式 -->
     <!-- 載入模組主程式與雙向同步 -->
     <script type="module">
         import { syncToSupabase, loadFromSupabase } from './js/services/cases.js';
@@ -2561,6 +2575,5 @@
         });
     </script>
 
-</body> <!-- 這裡才是 body 的結尾 -->
+</body>
 </html>
-
