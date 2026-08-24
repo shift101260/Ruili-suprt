@@ -1579,44 +1579,34 @@
         }
 
         function transferSelected2026Cases() {
-    const checkedBoxes = document.querySelectorAll('.case-checkbox:checked');
-    if (checkedBoxes.length === 0) {
-        alert('請先勾選 2026案件管控面板 中欲拋轉的案件！');
-        return;
-    }
-
-    const targetStatus = document.getElementById('select-2026-batch-target').value;
-    const idsToTransfer = Array.from(checkedBoxes).map(chk => chk.dataset.id);
-
-    let count = 0;
-
-    if (targetStatus === '複製到土地變更') {
-        // 複製邏輯：保留 2026 原案件，獨立複製一份新案件給土地變更
-        idsToTransfer.forEach(id => {
-            const originalCase = casesData.find(c => c.id === id);
-            if (originalCase) {
-                const newCase = JSON.parse(JSON.stringify(originalCase)); // 深拷貝完整資料
-                newCase.id = 'case_' + Date.now() + Math.random().toString(36).substr(2, 4); // 產生全新 ID
-                newCase.status = '土地變更'; // 觸發 1543 行邏輯，自動歸類到「優先處理」
-                casesData.unshift(newCase);
-                count++;
+            const checkedBoxes = document.querySelectorAll('.case-checkbox:checked');
+            if (checkedBoxes.length === 0) {
+                alert('請先勾選 2026案件管控面板 中欲拋轉的案件！');
+                return;
             }
-        });
-        alert(`已成功複製 ${count} 筆案件至【土地變更（優先處理）】！`);
-    } else {
-        // 一般狀態轉移（修改 status）
-        casesData.forEach(c => {
-            if (idsToTransfer.includes(c.id)) {
-                c.status = targetStatus;
-                count++;
-            }
-        });
-        alert(`已成功將 ${count} 筆案件拋轉至【${targetStatus}】！`);
-    }
 
-    saveCasesToStorage();
-    loadCasesFromStorage();
-}
+            const targetStatus = document.getElementById('select-2026-batch-target').value;
+            const idsToTransfer = Array.from(checkedBoxes).map(chk => chk.dataset.id);
+
+            let count = 0;
+            casesData.forEach(c => {
+                if (idsToTransfer.includes(c.id)) {
+                    // 只更新案件分類狀態，不改動工作進度 (workProgress)
+                    c.status = targetStatus;
+                    count++;
+                }
+            });
+
+            saveCasesToStorage();
+            loadCasesFromStorage();
+            alert(`已成功將 ${count} 筆案件拋轉至【${targetStatus}】！`);
+        }
+
+        function transferSelectedSpecialCases() {
+            const checkedBoxes = document.querySelectorAll('.sf-case-checkbox:checked');
+            if (checkedBoxes.length === 0) {
+                alert('請先勾選欲拋轉的客戶案件！');
+                return;
             }
 
             const targetStatus = document.getElementById('select-batch-target').value;
