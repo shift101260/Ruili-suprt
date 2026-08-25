@@ -190,7 +190,7 @@
                                 拋轉
                             </button>
                         </div>
-                        <button onclick="openAddCaseModal()" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-medium transition flex items-center gap-1 shadow-sm">
+                        <button onclick="openAddCaseModal('案件評估')" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-medium transition flex items-center gap-1 shadow-sm">
                             <i class="fa-solid fa-plus"></i> 新增案件
                         </button>
                         <button onclick="deleteSelectedCases()" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-medium transition flex items-center gap-1 shadow-sm">
@@ -316,7 +316,7 @@
                             <button onclick="restoreDeletedCases()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-medium transition flex items-center gap-1 shadow-sm">
                                 <i class="fa-solid fa-rotate-left"></i> 恢復
                             </button>
-                            <button onclick="openAddCaseModal('優先處理')" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-medium transition flex items-center gap-1 shadow-sm">
+                            <button onclick="openAddCaseModal('土地變更')" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-medium transition flex items-center gap-1 shadow-sm">
                                 <i class="fa-solid fa-plus"></i> 新增
                             </button>
                         </div>
@@ -542,7 +542,7 @@
                                 案件狀態 (拋轉歸類區) <span class="text-rose-500">*</span>
                             </label>
                             <select id="select-case-status" required class="w-full px-3 py-2 border border-sky-300 bg-sky-50 text-sky-900 font-semibold rounded-lg text-xs focus:outline-none focus:border-sky-500">
-                                <option value="土地變更" selected>土地變更</option>
+                                <option value="土地變更">土地變更</option>
                                 <option value="案件評估">案件評估</option>
                                 <option value="簽約案件">簽約案件</option>
                                 <option value="歷年簽約案件">歷年簽約案件</option>
@@ -1687,8 +1687,7 @@
             }
         }
 
-        // 修改1: 預設帶入「土地變更」
-        function openAddCaseModal(defaultStatus = '土地變更') {
+        function openAddCaseModal(defaultStatus = '案件評估') {
             document.getElementById('modal-title').textContent = '建立新案件';
             document.getElementById('btn-submit-case').textContent = '儲存';
             document.getElementById('add-case-form').reset();
@@ -2010,7 +2009,6 @@
             document.getElementById('res-solar-精算-Total').textContent = `NT$ ${Math.round(精算_Total).toLocaleString()}`;
         }
 
-        // 修改2: 自動覆蓋替換舊的「【太陽能試算摘要】」，防止重複連加
         function applySolarResultsToCase() {
             const roofPing = document.getElementById('solar-roof-ping').value || 0;
             const dailyGen = document.getElementById('res-solar-daily-gen').textContent;
