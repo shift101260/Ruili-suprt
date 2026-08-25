@@ -542,12 +542,12 @@
                                 案件狀態 (拋轉歸類區) <span class="text-rose-500">*</span>
                             </label>
                             <select id="select-case-status" required class="w-full px-3 py-2 border border-sky-300 bg-sky-50 text-sky-900 font-semibold rounded-lg text-xs focus:outline-none focus:border-sky-500">
+                                <option value="土地變更" selected>土地變更</option>
                                 <option value="案件評估">案件評估</option>
                                 <option value="簽約案件">簽約案件</option>
                                 <option value="歷年簽約案件">歷年簽約案件</option>
                                 <option value="結案">結案</option>
                                 <option value="廢件區">廢件區</option>
-                                <option value="土地變更">土地變更</option>
                             </select>
                         </div>
 
@@ -1687,7 +1687,8 @@
             }
         }
 
-        function openAddCaseModal(defaultStatus = '案件評估') {
+        // 修改1: 預設帶入「土地變更」
+        function openAddCaseModal(defaultStatus = '土地變更') {
             document.getElementById('modal-title').textContent = '建立新案件';
             document.getElementById('btn-submit-case').textContent = '儲存';
             document.getElementById('add-case-form').reset();
@@ -1766,7 +1767,7 @@
                 if (matchedStatus === '土地變更') matchedStatus = '優先處理';
                 statusSelect.value = matchedStatus;
             } else {
-                statusSelect.value = '案件評估';
+                statusSelect.value = '土地變更';
             }
 
             document.getElementById('input-created-at').value = c.createdAt || '';
@@ -2009,6 +2010,7 @@
             document.getElementById('res-solar-精算-Total').textContent = `NT$ ${Math.round(精算_Total).toLocaleString()}`;
         }
 
+        // 修改2: 自動覆蓋替換舊的「【太陽能試算摘要】」，防止重複連加
         function applySolarResultsToCase() {
             const roofPing = document.getElementById('solar-roof-ping').value || 0;
             const dailyGen = document.getElementById('res-solar-daily-gen').textContent;
@@ -2018,11 +2020,22 @@
             const summaryText = `【太陽能試算摘要】\n- 屋頂坪數：${roofPing} 坪\n- 預估每日發電：${dailyGen}\n- 預估每月發電：${monthlyGen}\n- 預估每年收益：${annualRev}`;
 
             const descInput = document.getElementById('input-case-description');
-            descInput.value = (descInput.value ? descInput.value + '\n\n' : '') + summaryText;
-            autoExpandTextarea(descInput);
+            let currentText = descInput.value.trim();
 
+            // 正則表達式：尋找已存在的【太陽能試算摘要】區塊（直到段落結束或文末）
+            const solarRegex = /【太陽能試算摘要】[\s\S]*?(?=\n\n|$)/;
+
+            if (solarRegex.test(currentText)) {
+                // 如果已存在摘要，則替換更新
+                descInput.value = currentText.replace(solarRegex, summaryText);
+            } else {
+                // 若不存在，才串接在末尾
+                descInput.value = currentText ? `${currentText}\n\n${summaryText}` : summaryText;
+            }
+
+            autoExpandTextarea(descInput);
             closeSolarModal();
-            alert('太陽能試算結果已自動帶入案件說明！');
+            alert('太陽能試算結果已更新至案件說明！');
         }
 
         // --- 土地變更 Modal 控制邏輯 ---
