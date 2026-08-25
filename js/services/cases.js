@@ -2,24 +2,17 @@
 import { supabaseClient, STORAGE_KEY } from '../config.js';
 
 export async function syncToSupabase(data) {
-  if (!data || !supabaseClient) return;
+  if (!data) return;
   try {
-    // 直接 insert 最新資料陣列，讓 Supabase 自動生成 id
-    const { error } = await supabaseClient
-      .from('cases')
-      .insert([{ data: data }]);
-
-    if (error) throw error;
+    await supabaseClient.from('cases').insert([{ data: data }]);
     console.log('雲端同步成功！');
   } catch (err) {
     console.error('雲端同步失敗：', err);
   }
 }
 
-export async function loadFromSupabase() {
-  if (!supabaseClient) return;
+export async function loadFromSupabase(casesDataRef, callback) {
   try {
-    // 永遠讀取流水號 id 最大（最新）的那一筆
     const { data, error } = await supabaseClient
       .from('cases')
       .select('data')
@@ -28,13 +21,15 @@ export async function loadFromSupabase() {
 
     if (error) throw error;
 
-    if (data && data.length > 0 && data[0].data) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data[0].data));
-      if (typeof window.loadCasesFromStorage === 'function') {
-        window.loadCasesFromStorage();
-      }
+    if (data && data.length > 0) {
+      let cloudData = data[0].data;
+      let parsedData = typeof cloudData === 'string' ? JSON.parse(cloudData) : cloudData;
+      
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(parsedData));
+      if (typeof callback === 'function') callback(parsedData);
+      console.log('已自動同步雲端最新案件！');
     }
   } catch (err) {
-    console.error('載入雲端資料失敗：', err);
+    console.error('載入雲端失敗，使用本地資料：', err);
   }
 }
