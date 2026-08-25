@@ -90,8 +90,8 @@
                 <span>廢件區</span>
             </button>
             <button onclick="switchTab('real-estate-table')" id="btn-real-estate-table" class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-400 transition-all hover:bg-slate-800 hover:text-white">
-                <i class="fa-solid fa-building text-lg w-5 text-center"></i>
-                <span>不動產案件資料表</span>
+                <i class="fa-solid fa-file-invoice-dollar text-lg w-5 text-center"></i>
+                <span>報價單</span>
             </button>
         </nav>
 
@@ -432,13 +432,13 @@
                 </div>
             </section>
 
-            <!-- 不動產案件資料表 -->
+            <!-- 報價單 (原不動產案件資料表) -->
             <section id="tab-real-estate-table" class="tab-content hidden space-y-6">
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                     <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                        <h3 class="font-bold text-slate-800">不動產案件總表</h3>
+                        <h3 class="font-bold text-slate-800">報價單資料表</h3>
                         <div class="flex gap-2 w-full sm:w-auto">
-                            <input type="text" placeholder="搜尋不動產案件..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs w-full sm:w-48 focus:outline-none focus:border-sky-500">
+                            <input type="text" placeholder="搜尋報價單..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs w-full sm:w-48 focus:outline-none focus:border-sky-500">
                             <button class="px-3 py-1.5 bg-slate-800 text-white rounded-lg text-xs font-medium shrink-0">匯出 EXCEL</button>
                         </div>
                     </div>
@@ -447,7 +447,7 @@
                             <thead class="bg-slate-50 text-slate-700 border-b border-slate-200">
                                 <tr>
                                     <th class="p-3 font-semibold">案件編號</th>
-                                    <th class="p-3 font-semibold">不動產標的名稱</th>
+                                    <th class="p-3 font-semibold">報價標的名稱</th>
                                     <th class="p-3 font-semibold">負責人</th>
                                     <th class="p-3 font-semibold">進度狀態</th>
                                     <th class="p-3 font-semibold">建立日期</th>
@@ -671,7 +671,7 @@
 
                         <div>
                             <label class="block text-xs font-semibold text-slate-700 mb-1"> 簽約金額 (NT$)</label>
-                            <input type="number" id="input-contract-amount" placeholder="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-sky-500 font-mono">
+                            <input type="number" id="input-contract-amount" placeholder="0" oninput="calculatePaymentSchedule()" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-sky-500 font-mono">
                         </div>
                     </div>
 
@@ -747,14 +747,18 @@
                         </div>
                     </div>
 
-                    <!-- 付款期程 -->
+                    <!-- 收款期程 (輸入 % 自動換算每期金額) -->
                     <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-                        <label class="block text-xs font-bold text-slate-800"> 付款期程</label>
+                        <label class="block text-xs font-bold text-slate-800"> 收款期程 (依簽約金額按%自動計算)</label>
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                            <!-- 第一期 -->
                             <div class="bg-white p-2.5 rounded-lg border border-slate-200 space-y-2">
                                 <div>
-                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">第一期款 (NT$)</label>
-                                    <input type="number" id="input-pay1-amount" placeholder="0" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-sky-500 font-mono">
+                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">第一期款 (%)</label>
+                                    <input type="number" id="input-pay1-percent" step="0.1" placeholder="例如: 30" oninput="calculatePaymentSchedule()" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-sky-500 font-mono">
+                                </div>
+                                <div class="text-right font-mono font-bold text-emerald-700 text-xs" id="display-pay1-amount">
+                                    NT$ 0
                                 </div>
                                 <div>
                                     <label class="block text-[11px] font-semibold text-slate-600 mb-1">日期</label>
@@ -762,10 +766,14 @@
                                 </div>
                             </div>
 
+                            <!-- 第二期 -->
                             <div class="bg-white p-2.5 rounded-lg border border-slate-200 space-y-2">
                                 <div>
-                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">第二期款 (NT$)</label>
-                                    <input type="number" id="input-pay2-amount" placeholder="0" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-sky-500 font-mono">
+                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">第二期款 (%)</label>
+                                    <input type="number" id="input-pay2-percent" step="0.1" placeholder="例如: 30" oninput="calculatePaymentSchedule()" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-sky-500 font-mono">
+                                </div>
+                                <div class="text-right font-mono font-bold text-emerald-700 text-xs" id="display-pay2-amount">
+                                    NT$ 0
                                 </div>
                                 <div>
                                     <label class="block text-[11px] font-semibold text-slate-600 mb-1">日期</label>
@@ -773,10 +781,14 @@
                                 </div>
                             </div>
 
+                            <!-- 第三期 -->
                             <div class="bg-white p-2.5 rounded-lg border border-slate-200 space-y-2">
                                 <div>
-                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">第三期款 (NT$)</label>
-                                    <input type="number" id="input-pay3-amount" placeholder="0" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-sky-500 font-mono">
+                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">第三期款 (%)</label>
+                                    <input type="number" id="input-pay3-percent" step="0.1" placeholder="例如: 20" oninput="calculatePaymentSchedule()" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-sky-500 font-mono">
+                                </div>
+                                <div class="text-right font-mono font-bold text-emerald-700 text-xs" id="display-pay3-amount">
+                                    NT$ 0
                                 </div>
                                 <div>
                                     <label class="block text-[11px] font-semibold text-slate-600 mb-1">日期</label>
@@ -784,10 +796,14 @@
                                 </div>
                             </div>
 
+                            <!-- 第四期 -->
                             <div class="bg-white p-2.5 rounded-lg border border-slate-200 space-y-2">
                                 <div>
-                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">第四期款 (NT$)</label>
-                                    <input type="number" id="input-pay4-amount" placeholder="0" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-sky-500 font-mono">
+                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">第四期款 (%)</label>
+                                    <input type="number" id="input-pay4-percent" step="0.1" placeholder="例如: 20" oninput="calculatePaymentSchedule()" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-sky-500 font-mono">
+                                </div>
+                                <div class="text-right font-mono font-bold text-emerald-700 text-xs" id="display-pay4-amount">
+                                    NT$ 0
                                 </div>
                                 <div>
                                     <label class="block text-[11px] font-semibold text-slate-600 mb-1">日期</label>
@@ -938,8 +954,16 @@
                         </div>
                     </div>
 
-                    <div class="bg-white p-3 rounded-lg border border-emerald-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                        <span class="font-bold text-slate-700">D. 綠電園區每年售電收益(每度5元)</span>
+                    <!-- 改為自填每度單價 (預設 5 元) -->
+                    <div class="bg-white p-3 rounded-lg border border-emerald-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-slate-700">D. 綠電園區每年售電收益</span>
+                            <div class="flex items-center gap-1">
+                                <span class="text-slate-500 text-xs">(每度</span>
+                                <input type="number" step="0.1" id="solar-green-park-price" value="5" oninput="calculateSolarAll()" class="w-16 px-2 py-0.5 border border-slate-300 rounded text-center font-mono text-xs focus:outline-none focus:border-emerald-500">
+                                <span class="text-slate-500 text-xs">元)</span>
+                            </div>
+                        </div>
                         <span id="res-solar-精算-D" class="text-base font-bold text-emerald-700 font-mono">NT$ 0</span>
                     </div>
 
@@ -1007,6 +1031,16 @@
                             <td class="p-2.5 font-semibold text-slate-800">阜大</td>
                             <td class="p-2.5 font-mono font-bold text-amber-600">230 度/日</td>
                             <td class="p-2.5 text-slate-500">機電測試</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 font-semibold text-slate-800">程福</td>
+                            <td class="p-2.5 font-mono font-bold text-amber-600">600 度/日</td>
+                            <td class="p-2.5 text-slate-500">工廠600坪</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 font-semibold text-slate-800">精進</td>
+                            <td class="p-2.5 font-mono font-bold text-amber-600">-</td>
+                            <td class="p-2.5 text-slate-500">CNC*1農電每月電費6萬</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1516,7 +1550,6 @@
                 const displayAmount = (!isNaN(contractVal) && contractVal > 0) ? contractVal : quoteVal;
                 const amountFormatted = `NT$ ${parseInt(displayAmount).toLocaleString()}`;
                 
-                // 案件即時說明顯示字數 18 字
                 const noteText = truncateText(c.salesNote, 18);
 
                 tr.innerHTML = `
@@ -1560,7 +1593,6 @@
             const quoteFormatted = c.quoteAmount ? `NT$ ${parseInt(c.quoteAmount).toLocaleString()}` : 'NT$ 0';
             const contractFormatted = c.contractAmount ? `NT$ ${parseInt(c.contractAmount).toLocaleString()}` : 'NT$ 0';
 
-            // 客戶清單的「案件即時說明」顯示字數 18 字
             const noteText = truncateText(c.salesNote, 18);
 
             tr.innerHTML = `
@@ -1591,7 +1623,6 @@
             let count = 0;
             casesData.forEach(c => {
                 if (idsToTransfer.includes(c.id)) {
-                    // 只更新案件分類狀態，不改動工作進度 (workProgress)
                     c.status = targetStatus;
                     count++;
                 }
@@ -1615,7 +1646,6 @@
             let count = 0;
             casesData.forEach(c => {
                 if (idsToTransfer.includes(c.id)) {
-                    // 只更新案件分類狀態，不覆蓋工作進度 (workProgress)
                     c.status = targetStatus;
                     count++;
                 }
@@ -1646,7 +1676,7 @@
                 'war-room': '戰情室',
                 'cases-2026': '2026案件管理',
                 'special-factory': '土地變更',
-                'real-estate-table': '不動產案件資料表',
+                'real-estate-table': '報價單',
                 'closed-cases': '結案',
                 'trash-cases': '廢件區'
             };
@@ -1675,6 +1705,7 @@
             document.querySelectorAll('#add-case-modal textarea').forEach(ta => {
                 autoExpandTextarea(ta);
             });
+            calculatePaymentSchedule();
             document.getElementById('add-case-modal').classList.remove('hidden');
         }
 
@@ -1701,6 +1732,24 @@
             document.getElementById('feedback-land-container').innerHTML = '';
             feedbackLandRowCount = 0;
             addFeedbackLandRow();
+
+            // 重置太陽能試算暫存表單
+            resetSolarForm();
+        }
+
+        function resetSolarForm() {
+            document.getElementById('solar-roof-ping').value = '';
+            document.getElementById('solar-taipower-price').value = '4.5';
+            document.getElementById('solar-factory-elec-price').value = '';
+            document.getElementById('solar-daily-kwh').value = '';
+            document.getElementById('solar-period-bill').value = '';
+            document.getElementById('solar-annual-bill').value = '';
+            document.getElementById('solar-module-count').value = '';
+            document.getElementById('solar-module-watt').value = '590';
+            document.getElementById('solar-rent-ping').value = '';
+            document.getElementById('solar-rent-price').value = '';
+            document.getElementById('solar-green-park-price').value = '5';
+            calculateSolarAll();
         }
 
         function openEditCaseModal(id) {
@@ -1711,7 +1760,6 @@
             document.getElementById('btn-submit-case').textContent = '儲存變更';
             document.getElementById('input-case-id').value = c.id;
 
-            // 自動回填並選取該案件目前的「案件狀態 (拋轉歸類區)」
             const statusSelect = document.getElementById('select-case-status');
             if (c.status) {
                 let matchedStatus = c.status;
@@ -1736,14 +1784,33 @@
             document.getElementById('input-contract-amount').value = c.contractAmount || 0;
             document.getElementById('input-referrer').value = c.referrer || '';
 
-            document.getElementById('input-pay1-amount').value = c.pay1Amount || '';
+            // 填回付款%數與日期
+            document.getElementById('input-pay1-percent').value = c.pay1Percent || '';
             document.getElementById('input-pay1-date').value = c.pay1Date || '';
-            document.getElementById('input-pay2-amount').value = c.pay2Amount || '';
+            document.getElementById('input-pay2-percent').value = c.pay2Percent || '';
             document.getElementById('input-pay2-date').value = c.pay2Date || '';
-            document.getElementById('input-pay3-amount').value = c.pay3Amount || '';
+            document.getElementById('input-pay3-percent').value = c.pay3Percent || '';
             document.getElementById('input-pay3-date').value = c.pay3Date || '';
-            document.getElementById('input-pay4-amount').value = c.pay4Amount || '';
+            document.getElementById('input-pay4-percent').value = c.pay4Percent || '';
             document.getElementById('input-pay4-date').value = c.pay4Date || '';
+            calculatePaymentSchedule();
+
+            // 填回太陽能專屬試算欄位
+            if (c.solarData) {
+                document.getElementById('solar-roof-ping').value = c.solarData.roofPing || '';
+                document.getElementById('solar-taipower-price').value = c.solarData.taipowerPrice || '4.5';
+                document.getElementById('solar-factory-elec-price').value = c.solarData.factoryElecPrice || '';
+                document.getElementById('solar-daily-kwh').value = c.solarData.dailyKwh || '';
+                document.getElementById('solar-period-bill').value = c.solarData.periodBill || '';
+                document.getElementById('solar-annual-bill').value = c.solarData.annualBill || '';
+                document.getElementById('solar-module-count').value = c.solarData.moduleCount || '';
+                document.getElementById('solar-module-watt').value = c.solarData.moduleWatt || '590';
+                document.getElementById('solar-rent-ping').value = c.solarData.rentPing || '';
+                document.getElementById('solar-rent-price').value = c.solarData.rentPrice || '';
+                document.getElementById('solar-green-park-price').value = c.solarData.greenParkPrice || '5';
+            } else {
+                resetSolarForm();
+            }
 
             document.getElementById('case-cost-container').innerHTML = '';
             if (c.caseCosts && c.caseCosts.length > 0) {
@@ -1810,6 +1877,22 @@
             if (!element) return;
             element.style.height = 'auto';
             element.style.height = Math.max(element.scrollHeight, 100) + 'px';
+        }
+
+        // --- 付款期程 (百分比與金額換算邏輯) ---
+        function calculatePaymentSchedule() {
+            const contractAmt = parseFloat(document.getElementById('input-contract-amount').value || 0);
+            
+            for (let i = 1; i <= 4; i++) {
+                const pctInput = document.getElementById(`input-pay${i}-percent`);
+                const amtDisplay = document.getElementById(`display-pay${i}-amount`);
+                const pct = parseFloat(pctInput ? pctInput.value : 0) || 0;
+                
+                const amt = Math.round(contractAmt * (pct / 100));
+                if (amtDisplay) {
+                    amtDisplay.textContent = `NT$ ${amt.toLocaleString()}`;
+                }
+            }
         }
 
         function addCaseCostRow(data = {}) {
@@ -1913,7 +1996,9 @@
             const rentPrice = parseFloat(document.getElementById('solar-rent-price').value || 0);
             const 精算_C = rentPing * rentPrice * 12;
 
-            const 精算_D = annualGen * 5;
+            // D. 綠電園區每年售電收益：每年發電度數 * 自填單價
+            const greenParkPrice = parseFloat(document.getElementById('solar-green-park-price').value || 0);
+            const 精算_D = annualGen * greenParkPrice;
 
             const 精算_Total = 精算_A + 精算_B + 精算_C + 精算_D;
 
@@ -2492,6 +2577,21 @@
                 });
             });
 
+            // 儲存太陽能試算數據（每個公司獨立）
+            const solarData = {
+                roofPing: document.getElementById('solar-roof-ping').value || '',
+                taipowerPrice: document.getElementById('solar-taipower-price').value || '4.5',
+                factoryElecPrice: document.getElementById('solar-factory-elec-price').value || '',
+                dailyKwh: document.getElementById('solar-daily-kwh').value || '',
+                periodBill: document.getElementById('solar-period-bill').value || '',
+                annualBill: document.getElementById('solar-annual-bill').value || '',
+                moduleCount: document.getElementById('solar-module-count').value || '',
+                moduleWatt: document.getElementById('solar-module-watt').value || '590',
+                rentPing: document.getElementById('solar-rent-ping').value || '',
+                rentPrice: document.getElementById('solar-rent-price').value || '',
+                greenParkPrice: document.getElementById('solar-green-park-price').value || '5'
+            };
+
             const caseObj = {
                 id: existingId || ('case_' + Date.now()),
                 status: selectedStatus,
@@ -2509,13 +2609,14 @@
                 caseSource: document.getElementById('select-case-source').value,
                 contractAmount: parseFloat(document.getElementById('input-contract-amount').value || 0),
                 referrer: document.getElementById('input-referrer').value,
-                pay1Amount: document.getElementById('input-pay1-amount').value,
+                
+                pay1Percent: document.getElementById('input-pay1-percent').value,
                 pay1Date: document.getElementById('input-pay1-date').value,
-                pay2Amount: document.getElementById('input-pay2-amount').value,
+                pay2Percent: document.getElementById('input-pay2-percent').value,
                 pay2Date: document.getElementById('input-pay2-date').value,
-                pay3Amount: document.getElementById('input-pay3-amount').value,
+                pay3Percent: document.getElementById('input-pay3-percent').value,
                 pay3Date: document.getElementById('input-pay3-date').value,
-                pay4Amount: document.getElementById('input-pay4-amount').value,
+                pay4Percent: document.getElementById('input-pay4-percent').value,
                 pay4Date: document.getElementById('input-pay4-date').value,
                 
                 caseCosts: caseCosts,
@@ -2525,7 +2626,8 @@
                 registeredBuildings: registeredBuildings,
                 unregisteredBuildingMaster: unregisteredBuildingMaster,
                 unregisteredBuildings: unregisteredBuildings,
-                feedbackLands: feedbackLands
+                feedbackLands: feedbackLands,
+                solarData: solarData
             };
 
             if (existingId) {
