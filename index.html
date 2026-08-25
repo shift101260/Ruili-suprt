@@ -1760,14 +1760,9 @@
             document.getElementById('btn-submit-case').textContent = '儲存變更';
             document.getElementById('input-case-id').value = c.id;
 
+            // 保留案件原本的狀態（包含「土地變更」），若不存在則預設為「土地變更」
             const statusSelect = document.getElementById('select-case-status');
-            if (c.status) {
-                let matchedStatus = c.status;
-                if (matchedStatus === '土地變更') matchedStatus = '優先處理';
-                statusSelect.value = matchedStatus;
-            } else {
-                statusSelect.value = '土地變更';
-            }
+            statusSelect.value = c.status || '土地變更';
 
             document.getElementById('input-created-at').value = c.createdAt || '';
             document.getElementById('input-client-name').value = c.clientName || '';
