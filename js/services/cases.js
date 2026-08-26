@@ -1,7 +1,6 @@
 // js/services/cases.js
 import { supabaseClient, STORAGE_KEY } from '../config.js';
 
-// 1. 同步全量案件（逐筆 upsert 到 Supabase）
 export async function syncToSupabase(casesArray) {
   if (!Array.isArray(casesArray) || casesArray.length === 0) return;
 
@@ -26,7 +25,6 @@ export async function syncToSupabase(casesArray) {
   }
 }
 
-// 2. 單筆刪除案件同步
 export async function deleteFromSupabase(caseId) {
   if (!caseId) return;
   try {
@@ -42,7 +40,6 @@ export async function deleteFromSupabase(caseId) {
   }
 }
 
-// 3. 從 Supabase 載入（加強版防覆蓋保護）
 export async function loadFromSupabase(callback) {
   try {
     const { data, error } = await supabaseClient
@@ -51,7 +48,6 @@ export async function loadFromSupabase(callback) {
 
     if (error) throw error;
 
-    // 💡 安全防護：只有當雲端有資料 (長度 > 0) 時才覆蓋本機；如果雲端是空的，自動把本機資料同步上去！
     if (data && data.length > 0) {
       const parsedCases = data.map(row => row.data || row);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(parsedCases));
@@ -59,8 +55,11 @@ export async function loadFromSupabase(callback) {
       if (typeof callback === 'function') callback(parsedCases);
       console.log('已成功從雲端載入全量案件清單！');
     } else {
-      // 雲端是空的，檢查本機有沒有資料，如果有就幫忙同步上雲端
-      const localDataStr = localStorage.getItem(STORAGE_KEY);
+      // 多重檢查舊的 LocalStorage Key，確保資料能備份上去
+      let localDataStr = localStorage.getItem(STORAGE_KEY) || 
+                         localStorage.getItem('cases') || 
+                         localStorage.getItem('cases_data');
+                         
       if (localDataStr) {
         const localCases = JSON.parse(localDataStr);
         if (Array.isArray(localCases) && localCases.length > 0) {
