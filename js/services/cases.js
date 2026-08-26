@@ -1,4 +1,4 @@
-import { SUPABASE_URL, SUPABASE_KEY } from '../config.js';
+import { sb_publishable_V9QZLQBKv2SGrthA814LAg_x167CTRD } from '../config.js';
 
 window.syncToSupabase = async function(casesData) {
   try {
