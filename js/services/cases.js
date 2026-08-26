@@ -1,4 +1,4 @@
-import { SUPABASE } from '../config.js';
+import { SUPABASE_URL, SUPABASE_KEY } from '../config.js';
 
 // 同步資料至 Supabase
 window.syncToSupabase = async function(casesData) {
