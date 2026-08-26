@@ -2651,16 +2651,24 @@
     </script>
 
     <!-- 載入模組主程式與雙向同步 -->
-    <script type="module">
-        import { syncToSupabase, loadFromSupabase } from './js/services/cases.js';
+<script type="module">
+    import { syncToSupabase, deleteFromSupabase, loadFromSupabase } from './js/services/cases.js';
 
-        // 讓舊的普通 script 也能呼叫到模組裡的 syncToSupabase
-        window.syncToSupabase = syncToSupabase;
+    // 讓舊的普通 script 或 HTML 按鈕也能呼叫到模組裡的功能
+    window.syncToSupabase = syncToSupabase;
+    window.deleteFromSupabase = deleteFromSupabase;
 
-        window.addEventListener('DOMContentLoaded', () => {
-            loadFromSupabase();
+    window.addEventListener('DOMContentLoaded', () => {
+        loadFromSupabase((parsedCases) => {
+            // 當雲端資料載入完成時，觸發前端畫面重新繪製
+            if (typeof loadCasesFromStorage === 'function') {
+                loadCasesFromStorage();
+            } else if (typeof renderCases === 'function') {
+                renderCases();
+            }
         });
-    </script>
+    });
+</script>
 
 </body>
 </html>
