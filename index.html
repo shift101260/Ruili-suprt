@@ -37,7 +37,6 @@
             -moz-appearance: textfield;
         }
     </style>
-    <!-- 引入 Supabase SDK 與雙向同步設定 -->
 </head>
 <body class="bg-slate-50 text-slate-800 flex flex-col md:flex-row h-screen overflow-hidden">
 
@@ -315,7 +314,7 @@
                             <button onclick="restoreDeletedCases()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-medium transition flex items-center gap-1 shadow-sm">
                                 <i class="fa-solid fa-rotate-left"></i> 恢復
                             </button>
-                            <button onclick="openAddCaseModal('土地變更')" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-medium transition flex items-center gap-1 shadow-sm">
+                            <button onclick="openAddCaseModal('優先處理')" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-medium transition flex items-center gap-1 shadow-sm">
                                 <i class="fa-solid fa-plus"></i> 新增
                             </button>
                         </div>
@@ -540,13 +539,21 @@
                             <label class="block text-xs font-semibold text-slate-700 mb-1">
                                 案件狀態 (拋轉歸類區) <span class="text-rose-500">*</span>
                             </label>
+                            <!-- 補全選單選項：加入土地變更清單專屬狀態，避免選擇遺漏 -->
                             <select id="select-case-status" required class="w-full px-3 py-2 border border-sky-300 bg-sky-50 text-sky-900 font-semibold rounded-lg text-xs focus:outline-none focus:border-sky-500">
-                                <option value="土地變更">土地變更</option>
                                 <option value="案件評估">案件評估</option>
                                 <option value="簽約案件">簽約案件</option>
+                                <option value="已簽約">已簽約</option>
                                 <option value="歷年簽約案件">歷年簽約案件</option>
                                 <option value="結案">結案</option>
                                 <option value="廢件區">廢件區</option>
+                                <option value="土地變更">土地變更</option>
+                                <option value="優先處理">優先處理</option>
+                                <option value="總有一天">總有一天</option>
+                                <option value="租客案件">租客案件</option>
+                                <option value="同業案件">同業案件</option>
+                                <option value="已被斬件">已被斬件</option>
+                                <option value="無法領證">無法領證</option>
                             </select>
                         </div>
 
@@ -1494,7 +1501,9 @@
 
         function saveCasesToStorage() {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(casesData));
-            syncToSupabase(casesData);
+            if (typeof syncToSupabase === 'function') {
+                syncToSupabase(casesData);
+            }
             updateDashboard();
         }
 
@@ -1732,7 +1741,6 @@
             feedbackLandRowCount = 0;
             addFeedbackLandRow();
 
-            // 重置太陽能試算暫存表單
             resetSolarForm();
         }
 
@@ -1759,9 +1767,9 @@
             document.getElementById('btn-submit-case').textContent = '儲存變更';
             document.getElementById('input-case-id').value = c.id;
 
-            // 保留案件原本的狀態（包含「土地變更」），若不存在則預設為「土地變更」
+            // 準確同步與保留該案件原本的狀態，防止被預設值覆蓋
             const statusSelect = document.getElementById('select-case-status');
-            statusSelect.value = c.status || '土地變更';
+            statusSelect.value = c.status || '案件評估';
 
             document.getElementById('input-created-at').value = c.createdAt || '';
             document.getElementById('input-client-name').value = c.clientName || '';
@@ -1778,7 +1786,6 @@
             document.getElementById('input-contract-amount').value = c.contractAmount || 0;
             document.getElementById('input-referrer').value = c.referrer || '';
 
-            // 填回付款%數與日期
             document.getElementById('input-pay1-percent').value = c.pay1Percent || '';
             document.getElementById('input-pay1-date').value = c.pay1Date || '';
             document.getElementById('input-pay2-percent').value = c.pay2Percent || '';
@@ -1789,7 +1796,6 @@
             document.getElementById('input-pay4-date').value = c.pay4Date || '';
             calculatePaymentSchedule();
 
-            // 填回太陽能專屬試算欄位
             if (c.solarData) {
                 document.getElementById('solar-roof-ping').value = c.solarData.roofPing || '';
                 document.getElementById('solar-taipower-price').value = c.solarData.taipowerPrice || '4.5';
@@ -1873,7 +1879,6 @@
             element.style.height = Math.max(element.scrollHeight, 100) + 'px';
         }
 
-        // --- 付款期程 (百分比與金額換算邏輯) ---
         function calculatePaymentSchedule() {
             const contractAmt = parseFloat(document.getElementById('input-contract-amount').value || 0);
             
@@ -1946,7 +1951,6 @@
             }
         }
 
-        // --- 太陽能試算邏輯 ---
         function openSolarModal() {
             document.getElementById('solar-modal').classList.remove('hidden');
             calculateSolarAll();
@@ -1990,7 +1994,6 @@
             const rentPrice = parseFloat(document.getElementById('solar-rent-price').value || 0);
             const 精算_C = rentPing * rentPrice * 12;
 
-            // D. 綠電園區每年售電收益：每年發電度數 * 自填單價
             const greenParkPrice = parseFloat(document.getElementById('solar-green-park-price').value || 0);
             const 精算_D = annualGen * greenParkPrice;
 
@@ -2014,14 +2017,11 @@
             const descInput = document.getElementById('input-case-description');
             let currentText = descInput.value.trim();
 
-            // 正則表達式：尋找已存在的【太陽能試算摘要】區塊（直到段落結束或文末）
             const solarRegex = /【太陽能試算摘要】[\s\S]*?(?=\n\n|$)/;
 
             if (solarRegex.test(currentText)) {
-                // 如果已存在摘要，則替換更新
                 descInput.value = currentText.replace(solarRegex, summaryText);
             } else {
-                // 若不存在，才串接在末尾
                 descInput.value = currentText ? `${currentText}\n\n${summaryText}` : summaryText;
             }
 
@@ -2030,7 +2030,6 @@
             alert('太陽能試算結果已更新至案件說明！');
         }
 
-        // --- 土地變更 Modal 控制邏輯 ---
         function openLandChangeModal() {
             document.getElementById('land-change-modal').classList.remove('hidden');
         }
@@ -2504,6 +2503,15 @@
 
             const existingId = document.getElementById('input-case-id').value;
             let selectedStatus = document.getElementById('select-case-status').value;
+            
+            // 如果是編輯既有案件，且表單未切換狀態，則保留原始狀態
+            if (existingId) {
+                const originalCase = casesData.find(c => c.id === existingId);
+                if (originalCase && originalCase.status) {
+                    selectedStatus = selectedStatus || originalCase.status;
+                }
+            }
+
             const workProgress = document.getElementById('select-work-progress').value;
 
             const caseCosts = [];
@@ -2582,7 +2590,6 @@
                 });
             });
 
-            // 儲存太陽能試算數據（每個公司獨立）
             const solarData = {
                 roofPing: document.getElementById('solar-roof-ping').value || '',
                 taipowerPrice: document.getElementById('solar-taipower-price').value || '4.5',
