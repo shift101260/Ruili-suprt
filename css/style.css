@@ -1,7 +1,17 @@
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background-color: #fafaf9; /* 溫暖的石色底代換原本冷色調 */
-    color: #292524; /* 溫潤的深咖啡灰文字，避免死黑 */
+    background-color: #fafaf9; /* 溫暖米白底 */
+    color: #292524; /* 溫潤深咖啡灰文字 */
+}
+
+/* 強制將所有原本帶有冷色的 bg-slate-50 全部覆寫為極簡溫潤風的米白/石色 */
+.bg-slate-50 {
+    background-color: #fafaf9 !important;
+}
+
+/* 同步讓部分卡片或邊框更加柔和 */
+.border-slate-200 {
+    border-color: #e7e5e4 !important;
 }
 
 .sidebar-item-active {
