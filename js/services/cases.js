@@ -1,11 +1,11 @@
 import { SUPABASE_URL, SUPABASE_KEY } from '../config.js';
 
-// 預設表單/網頁使用的儲存 Key
 const STORAGE_KEY = 'RUILI_SYSTEM_CASES_2026';
 
-// 1. 【新增】從 Supabase 讀取最新案件資料並渲染畫面
+// 1. 從 Supabase 抓取資料並【強制刷新畫面】
 window.fetchFromSupabase = async function() {
   try {
+    console.log('🔄 開始從 Supabase 拉取最新案件資料...');
     const response = await fetch(`${SUPABASE_URL}/rest/v1/cases?select=*`, {
       method: 'GET',
       headers: {
@@ -20,34 +20,50 @@ window.fetchFromSupabase = async function() {
     }
 
     const remoteData = await response.json();
+    console.log('📦 Supabase 回傳原始資料：', remoteData);
 
     if (Array.isArray(remoteData) && remoteData.length > 0) {
-      // 解析 Supabase 儲存的完整 JSON 資料 (data 欄位)
-      const parsedCases = remoteData.map(row => row.data || {
-        id: row.id,
-        clientName: row.client_name,
-        status: row.status,
-        workProgress: row.work_progress,
-        contractAmount: row.contract_amount
+      // 優先讀取 JSON 物件 (data)，若無則解析欄位
+      const parsedCases = remoteData.map(row => {
+        if (row.data && typeof row.data === 'object') {
+          return row.data;
+        }
+        return {
+          id: String(row.id),
+          clientName: row.client_name || '未命名客戶',
+          status: row.status || '簽約案件',
+          workProgress: row.work_progress || '已簽約',
+          contractAmount: Number(row.contract_amount) || 0,
+          quoteAmount: Number(row.quote_amount) || 0,
+          salesNote: row.sales_note || ''
+        };
       });
 
-      // 更新全域變數與本地 localStorage 快取
-      window.casesData = parsedCases;
+      // A. 強制更新瀏覽器快取 (localStorage)
       localStorage.setItem(STORAGE_KEY, JSON.stringify(parsedCases));
 
-      // 重新渲染畫面與更新戰情室數據
-      if (typeof window.loadCasesFromStorage === 'function') {
-        window.loadCasesFromStorage();
+      // B. 強制覆寫 index.html 中的全域變數 (casesData)
+      if (typeof window.casesData !== 'undefined') {
+        window.casesData = parsedCases;
       }
 
-      console.log('✅ 成功從 Supabase 下載最新案件資料！');
+      // C. 強制重新呼叫渲染函式
+      if (typeof window.loadCasesFromStorage === 'function') {
+        window.loadCasesFromStorage();
+        console.log('✅ 已成功將 Supabase 資料渲染至畫面！');
+      } else {
+        // 備用方案：若找不到函式直接重刷頁面
+        window.location.reload();
+      }
+    } else {
+      console.warn('⚠️ Supabase 中沒有找到任何案件資料。');
     }
   } catch (error) {
     console.error('❌ 從 Supabase 讀取資料失敗：', error.message);
   }
 };
 
-// 2. 同步資料至 Supabase (覆寫與新增 merge-duplicates)
+// 2. 同步資料至 Supabase
 window.syncToSupabase = async function(casesData) {
   try {
     if (!casesData || casesData.length === 0) return;
@@ -83,7 +99,11 @@ window.syncToSupabase = async function(casesData) {
   }
 };
 
-// 3. 【新增】網頁載入完成時，自動觸發雲端拉取
-document.addEventListener('DOMContentLoaded', () => {
+// 3. 確保網頁載入時立刻執行拉取
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
   window.fetchFromSupabase();
-});
+} else {
+  document.addEventListener('DOMContentLoaded', () => {
+    window.fetchFromSupabase();
+  });
+}
