@@ -1,31 +1,17 @@
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background-color: #fafaf9 !important; /* 溫潤米白 */
-    color: #292524 !important; /* 深咖啡灰文字 */
+    background-color: #f8fafc;
 }
-
-/* 強制將所有 Tailwind 的冷色系背景替換為暖色 */
-.bg-slate-50, 
-[class*="bg-slate-50"] {
-    background-color: #fafaf9 !important;
-}
-
-.border-slate-200 {
-    border-color: #e7e5e4 !important;
-}
-
 .sidebar-item-active {
-    background-color: #292524;
+    background-color: #1e293b;
     color: #38bdf8;
     border-left: 4px solid #38bdf8;
 }
-
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
 }
-
 input[type=number] {
     -moz-appearance: textfield;
 }
