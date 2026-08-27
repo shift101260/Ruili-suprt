@@ -1,17 +1,21 @@
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background-color: #f8fafc;
+    background-color: #fafaf9; /* 溫暖的石色底代換原本冷色調 */
+    color: #292524; /* 溫潤的深咖啡灰文字，避免死黑 */
 }
+
 .sidebar-item-active {
-    background-color: #1e293b;
+    background-color: #292524; /* 暖木炭灰 */
     color: #38bdf8;
     border-left: 4px solid #38bdf8;
 }
+
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
 }
+
 input[type=number] {
     -moz-appearance: textfield;
 }
