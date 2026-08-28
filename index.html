@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
+    <meta charset="UTF-8">
+    <style>
+        /* 強制全局覆寫，不依賴任何外部檔案或 Tailwind */
+        html, body, div, span, main, section, article {
+            background-color: #fafaf9 !important;
+            color: #292524 !important;
+        }
+    </style>
     <!-- PWA & 手機 APP 體驗設定 -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -17,31 +25,25 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=2">
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #f8fafc;
-        }
-        .sidebar-item-active {
-            background-color: #1e293b;
-            color: #38bdf8;
-            border-left: 4px solid #38bdf8;
-        }
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        input[type=number] {
-            -moz-appearance: textfield;
-        }
-    </style>
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        background-color: #fafaf9 !important;
+        color: #292524 !important;
+    }
+    .bg-slate-50, [class*="bg-slate-50"] {
+        background-color: #fafaf9 !important;
+    }
+    .border-slate-200 {
+        border-color: #e7e5e4 !important;
+    }
+</style>
 </head>
-<body class="bg-slate-50 text-slate-800 flex flex-col md:flex-row h-screen overflow-hidden">
+<body class="bg-[#fafaf9] text-stone-800 flex flex-col md:flex-row h-screen overflow-hidden">
 
     <!-- 手機版頂部導覽列 -->
-    <div class="md:hidden bg-slate-900 text-white flex items-center justify-between p-4 shadow-md z-20">
+    <div class="md:hidden bg-[#262624] text-white ...">
         <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded-lg bg-sky-600 flex items-center justify-center font-bold text-lg">睿</div>
             <span class="font-bold tracking-wide">睿立集團</span>
@@ -52,7 +54,7 @@
     </div>
 
     <!-- 側邊欄 -->
-    <aside id="sidebar" class="w-full md:w-64 bg-slate-900 text-slate-300 flex flex-col flex-shrink-0 shadow-lg absolute md:relative inset-y-0 left-0 transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out z-30">
+    <aside id="sidebar" class="w-full md:w-64 bg-[#262624] text-stone-300 ...">
         <div class="p-5 flex items-center justify-between border-b border-slate-800">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-lg bg-sky-600 flex items-center justify-center text-white font-bold text-xl shadow">睿</div>
@@ -102,7 +104,7 @@
         </div>
     </aside>
 
-    <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#fafaf9]">
         <header class="bg-white border-b border-slate-200 px-4 md:px-8 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
             <div>
                 <h2 id="page-title" class="text-lg md:text-xl font-bold text-slate-800">戰情室</h2>
